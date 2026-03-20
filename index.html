@@ -900,206 +900,73 @@
             } catch(e) {}
         }
 
-        // Beautiful Hijaz ascending arpeggio for envelope open
+        // --- Real Eid Nasheed Audio ---
+        var eidMusic = null;
+        var eidMusicReady = false;
+        function preloadEidMusic() {
+            try {
+                eidMusic = new Audio('eid-music.mp3');
+                eidMusic.loop = true;
+                eidMusic.volume = 0.5;
+                eidMusic.preload = 'auto';
+                eidMusic.addEventListener('canplaythrough', function() { eidMusicReady = true; }, { once: true });
+                // Fallback to lighter version if main fails
+                eidMusic.addEventListener('error', function() {
+                    eidMusic = new Audio('eid-music-lite.mp3');
+                    eidMusic.loop = true;
+                    eidMusic.volume = 0.5;
+                    eidMusic.preload = 'auto';
+                    eidMusic.addEventListener('canplaythrough', function() { eidMusicReady = true; }, { once: true });
+                }, { once: true });
+            } catch(e) {}
+        }
+        preloadEidMusic();
+
+        // Play bell + start nasheed on envelope open
         function playOpenSound() {
             if (isMuted) return;
-            // Play the CDN bell
+            // Play bell chime
             try {
                 if (bellLoaded && bellSound) {
                     bellSound.currentTime = 0;
                     bellSound.play().catch(function(){});
                 }
             } catch(e) {}
-            // Bright, joyful G major arpeggio for opening
-            try {
-                var ctx = ensureAudioCtx();
-                if (ctx.state === 'suspended') return;
-                initMasterAudio();
-                var t = ctx.currentTime + 0.05;
-                // G4 -> B4 -> D5 -> G5 -> B5 (bright major arpeggio)
-                var notes = [392, 493.88, 587.33, 783.99, 987.77];
-                var openGain = ctx.createGain();
-                openGain.gain.value = 0.18;
-                openGain.connect(ctx.destination);
-
-                notes.forEach(function(freq, i) {
-                    var delay = i * 0.12;
-                    var dur = 2.2 - i * 0.2;
-                    var o = ctx.createOscillator(), g = ctx.createGain();
-                    o.type = 'sine'; o.frequency.setValueAtTime(freq, t+delay);
-                    g.gain.setValueAtTime(0.001, t+delay);
-                    g.gain.linearRampToValueAtTime(0.18, t+delay+0.015);
-                    g.gain.exponentialRampToValueAtTime(0.001, t+delay+dur);
-                    o.connect(g); g.connect(openGain);
-                    o.start(t+delay); o.stop(t+delay+dur);
-                    // Bright shimmer
-                    var o2 = ctx.createOscillator(), g2 = ctx.createGain();
-                    o2.type = 'triangle'; o2.frequency.setValueAtTime(freq*2, t+delay);
-                    g2.gain.setValueAtTime(0.001, t+delay);
-                    g2.gain.linearRampToValueAtTime(0.06, t+delay+0.015);
-                    g2.gain.exponentialRampToValueAtTime(0.001, t+delay+dur*0.4);
-                    o2.connect(g2); g2.connect(openGain);
-                    o2.start(t+delay); o2.stop(t+delay+dur*0.4);
-                });
-                // Bright sustained G major chord
-                [196, 392, 493.88].forEach(function(freq) {
-                    var o = ctx.createOscillator(), g = ctx.createGain();
-                    o.type = 'sine'; o.frequency.setValueAtTime(freq, t);
-                    g.gain.setValueAtTime(0, t);
-                    g.gain.linearRampToValueAtTime(0.04, t+0.3);
-                    g.gain.setValueAtTime(0.04, t+1.5);
-                    g.gain.exponentialRampToValueAtTime(0.001, t+3);
-                    o.connect(g); g.connect(openGain);
-                    o.start(t); o.stop(t+3.1);
-                });
-            } catch(e) {}
         }
 
-        // ==========================================
-        // JOYFUL EID CELEBRATION MELODY
-        // G Major, 100 BPM, bright & uplifting
-        // ==========================================
+        // Play the real Eid nasheed
         function playAmbient() {
             if (isMuted || bgMusicPlaying) return;
             bgMusicPlaying = true;
             try {
-                var ctx = ensureAudioCtx();
-                if (ctx.state === 'suspended') { bgMusicPlaying = false; return; }
-                initMasterAudio();
-            } catch(e) { bgMusicPlaying = false; return; }
-
-            // G Major scale — bright, happy, celebratory
-            var G3=196,A3=220,B3=246.94,C4=261.63,D4=293.66,E4=329.63;
-            var G4=392,A4=440,B4=493.88,C5=523.25,D5=587.33,E5=659.25,G5=783.99;
-
-            var BPM = 100; // Upbeat tempo
-            var beat = 60 / BPM;
-
-            // Happy, bouncy celebration melody
-            var melody = [
-                // Phrase 1: Bright opening (joyful ascending)
-                [G4,0,0.5],[B4,0.5,0.5],[D5,1,0.75],[B4,1.75,0.25],
-                [G4,2,0.5],[A4,2.5,0.5],[B4,3,1],
-                [D5,4,0.5],[E5,4.5,0.5],[D5,5,0.5],[B4,5.5,0.5],
-                [C5,6,0.75],[A4,6.75,0.25],[G4,7,1],
-
-                // Phrase 2: Celebratory peak (uplifting!)
-                [B4,8,0.5],[D5,8.5,0.5],[G5,9,1],[E5,10,0.5],[D5,10.5,0.5],
-                [E5,11,0.5],[D5,11.5,0.5],[B4,12,1],
-                [C5,13,0.5],[D5,13.5,0.5],[E5,14,0.75],[D5,14.75,0.25],
-                [B4,15,0.5],[A4,15.5,0.5],
-
-                // Phrase 3: Dancing rhythm
-                [G4,16,0.5],[G4,16.5,0.25],[A4,16.75,0.25],[B4,17,0.5],[D5,17.5,0.5],
-                [C5,18,0.75],[B4,18.75,0.25],[A4,19,1],
-                [B4,20,0.5],[A4,20.5,0.5],[G4,21,0.5],[A4,21.5,0.5],
-                [B4,22,1.5],[G4,23.5,0.5],
-
-                // Phrase 4: Grand joyful finish
-                [D5,24,0.5],[E5,24.5,0.5],[G5,25,1],
-                [E5,26,0.5],[D5,26.5,0.5],[B4,27,1],
-                [C5,28,0.5],[B4,28.5,0.5],[A4,29,0.5],[B4,29.5,0.5],
-                [G4,30,2]
-            ];
-
-            // Bright major chord pads
-            var pads = [
-                [[G3,B4,D5],0,4],    // G major
-                [[C4,E4,G4],4,4],    // C major
-                [[G3,B4,D5],8,4],    // G major
-                [[D4,G4,B4],12,2],   // G/D
-                [[C4,E4,A4],14,2],   // Am (brief tension)
-                [[C4,E4,G4],16,4],   // C major
-                [[D4,G4,B4],20,4],   // G/D
-                [[G3,B4,D5],24,4],   // G major
-                [[C4,E4,G4],28,2],   // C major
-                [[G3,B3,D4],30,2.5]  // G major resolve
-            ];
-
-            // Bouncy bass line
-            var bass = [
-                [G3,0,1],[G3,1,1],[G3,2,1],[G3,3,1],
-                [C4,4,1],[C4,5,1],[C4,6,1],[C4,7,1],
-                [G3,8,1],[G3,9,1],[D4,10,1],[D4,11,1],
-                [G3,12,1],[G3,13,1],[A3,14,1],[A3,15,1],
-                [C4,16,1],[C4,17,1],[C4,18,1],[C4,19,1],
-                [D4,20,1],[D4,21,1],[G3,22,1],[G3,23,1],
-                [G3,24,1],[G3,25,1],[G3,26,1],[G3,27,1],
-                [C4,28,1],[C4,29,1],[G3,30,2]
-            ];
-
-            // Light rhythmic taps (percussion feel)
-            var taps = [];
-            for (var i = 0; i < 32; i++) {
-                taps.push([6000, i, 0.08]); // hi-hat on every beat
-                if (i % 2 === 0) taps.push([150, i, 0.15]); // kick on 1 & 3
-                if (i % 4 === 2) taps.push([400, i + 0.5, 0.08]); // snare offbeat
-            }
-
-            var totalBeats = 32;
-            var loopDur = totalBeats * beat;
-
-            function playLoop() {
-                if (isMuted) { bgMusicPlaying = false; return; }
-                try {
-                    var ctx = ensureAudioCtx();
-                    if (ctx.state === 'suspended') { setTimeout(playLoop, 3000); return; }
-                    initMasterAudio();
-                } catch(e) { bgMusicPlaying = false; return; }
-
-                var now = ctx.currentTime + 0.1;
-
-                // Melody (triangle — bright, clear)
-                melody.forEach(function(n) {
-                    playNote(n[0], now + n[1]*beat, n[2]*beat, 'triangle', 0.12, dryMix);
-                    playNote(n[0]*2, now + n[1]*beat, n[2]*beat, 'sine', 0.02, dryMix);
-                });
-
-                // Bright major pads
-                pads.forEach(function(chord) {
-                    chord[0].forEach(function(freq) {
-                        playNote(freq, now + chord[1]*beat, chord[2]*beat, 'sine', 0.025, dryMix);
-                    });
-                });
-
-                // Bouncy bass
-                bass.forEach(function(n) {
-                    playNote(n[0], now + n[1]*beat, n[2]*beat, 'sine', 0.055, dryMix);
-                });
-
-                // Light percussion taps
-                taps.forEach(function(n) {
-                    try {
-                        var ctx2 = ensureAudioCtx();
-                        var t2 = now + n[1]*beat;
-                        var o = ctx2.createOscillator(), g = ctx2.createGain();
-                        o.type = 'square';
-                        o.frequency.setValueAtTime(n[0], t2);
-                        o.frequency.exponentialRampToValueAtTime(Math.max(n[0]*0.3,20), t2+n[2]);
-                        g.gain.setValueAtTime(n[0] > 1000 ? 0.012 : 0.03, t2);
-                        g.gain.exponentialRampToValueAtTime(0.001, t2+n[2]);
-                        o.connect(g); g.connect(dryMix || ctx2.destination);
-                        o.start(t2); o.stop(t2+n[2]+0.01);
-                    } catch(e) {}
-                });
-
-                // Loop
-                setTimeout(function() {
-                    if (!isMuted) playLoop(); else bgMusicPlaying = false;
-                }, (loopDur + 1.5) * 1000);
-            }
-
-            playLoop();
+                if (eidMusic) {
+                    eidMusic.currentTime = 0;
+                    eidMusic.volume = 0.5;
+                    var playPromise = eidMusic.play();
+                    if (playPromise) {
+                        playPromise.catch(function() {
+                            // If autoplay blocked, try again on next interaction
+                            bgMusicPlaying = false;
+                            document.addEventListener('click', function retryPlay() {
+                                if (!isMuted && eidMusic) {
+                                    eidMusic.play().catch(function(){});
+                                    bgMusicPlaying = true;
+                                }
+                                document.removeEventListener('click', retryPlay);
+                            }, { once: true });
+                        });
+                    }
+                }
+            } catch(e) { bgMusicPlaying = false; }
         }
 
-        // Bright sparkle sound
+        // Sparkle sound (keep as light synth effect)
         function playSparkle() {
             if (isMuted) return;
             try {
                 var ctx = ensureAudioCtx();
                 if (ctx.state==='suspended') return;
                 var t = ctx.currentTime;
-                // Quick ascending major third sparkle
                 [783.99, 987.77].forEach(function(f, i) {
                     var o = ctx.createOscillator(), g = ctx.createGain();
                     o.type = 'sine';
@@ -1112,7 +979,6 @@
             } catch(e) {}
         }
 
-        // Unused but kept for compatibility
         function playDuaSound() {}
 
         window.toggleSound = function() {
@@ -1120,7 +986,12 @@
             var btn = document.getElementById('soundToggle');
             btn.innerHTML = isMuted ? '&#128263;' : '&#128266;';
             btn.classList.toggle('muted', isMuted);
-            if (!isMuted) { ensureAudioCtx(); if (!bgMusicPlaying) playAmbient(); }
+            if (isMuted) {
+                if (eidMusic) { eidMusic.pause(); }
+                bgMusicPlaying = false;
+            } else {
+                if (eidMusic && !bgMusicPlaying) { playAmbient(); }
+            }
         };
 
         // ==============================
