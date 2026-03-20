@@ -910,53 +910,55 @@
                     bellSound.play().catch(function(){});
                 }
             } catch(e) {}
-            // Also play a beautiful Hijaz arpeggio
+            // Bright, joyful G major arpeggio for opening
             try {
                 var ctx = ensureAudioCtx();
                 if (ctx.state === 'suspended') return;
                 initMasterAudio();
                 var t = ctx.currentTime + 0.05;
-                // D4 -> F#4 -> A4 -> D5 -> F#5 (Hijaz ascension)
-                var notes = [293.66, 369.99, 440.00, 587.33, 739.99];
+                // G4 -> B4 -> D5 -> G5 -> B5 (bright major arpeggio)
+                var notes = [392, 493.88, 587.33, 783.99, 987.77];
                 var openGain = ctx.createGain();
                 openGain.gain.value = 0.18;
                 openGain.connect(ctx.destination);
 
                 notes.forEach(function(freq, i) {
-                    var delay = i * 0.15;
-                    var dur = 2.8 - i * 0.25;
-                    // Bell tone
+                    var delay = i * 0.12;
+                    var dur = 2.2 - i * 0.2;
                     var o = ctx.createOscillator(), g = ctx.createGain();
                     o.type = 'sine'; o.frequency.setValueAtTime(freq, t+delay);
                     g.gain.setValueAtTime(0.001, t+delay);
-                    g.gain.linearRampToValueAtTime(0.2, t+delay+0.02);
+                    g.gain.linearRampToValueAtTime(0.18, t+delay+0.015);
                     g.gain.exponentialRampToValueAtTime(0.001, t+delay+dur);
                     o.connect(g); g.connect(openGain);
                     o.start(t+delay); o.stop(t+delay+dur);
-                    // Shimmer harmonic
+                    // Bright shimmer
                     var o2 = ctx.createOscillator(), g2 = ctx.createGain();
                     o2.type = 'triangle'; o2.frequency.setValueAtTime(freq*2, t+delay);
                     g2.gain.setValueAtTime(0.001, t+delay);
-                    g2.gain.linearRampToValueAtTime(0.05, t+delay+0.02);
-                    g2.gain.exponentialRampToValueAtTime(0.001, t+delay+dur*0.5);
+                    g2.gain.linearRampToValueAtTime(0.06, t+delay+0.015);
+                    g2.gain.exponentialRampToValueAtTime(0.001, t+delay+dur*0.4);
                     o2.connect(g2); g2.connect(openGain);
-                    o2.start(t+delay); o2.stop(t+delay+dur*0.5);
+                    o2.start(t+delay); o2.stop(t+delay+dur*0.4);
                 });
-                // Sustained pad (D major)
-                [146.83, 293.66, 369.99].forEach(function(freq) {
+                // Bright sustained G major chord
+                [196, 392, 493.88].forEach(function(freq) {
                     var o = ctx.createOscillator(), g = ctx.createGain();
                     o.type = 'sine'; o.frequency.setValueAtTime(freq, t);
                     g.gain.setValueAtTime(0, t);
-                    g.gain.linearRampToValueAtTime(0.04, t+0.5);
-                    g.gain.setValueAtTime(0.04, t+2);
-                    g.gain.exponentialRampToValueAtTime(0.001, t+3.5);
+                    g.gain.linearRampToValueAtTime(0.04, t+0.3);
+                    g.gain.setValueAtTime(0.04, t+1.5);
+                    g.gain.exponentialRampToValueAtTime(0.001, t+3);
                     o.connect(g); g.connect(openGain);
-                    o.start(t); o.stop(t+3.6);
+                    o.start(t); o.stop(t+3.1);
                 });
             } catch(e) {}
         }
 
-        // Composed Hijaz-scale celebration melody (loops)
+        // ==========================================
+        // JOYFUL EID CELEBRATION MELODY
+        // G Major, 100 BPM, bright & uplifting
+        // ==========================================
         function playAmbient() {
             if (isMuted || bgMusicPlaying) return;
             bgMusicPlaying = true;
@@ -966,43 +968,75 @@
                 initMasterAudio();
             } catch(e) { bgMusicPlaying = false; return; }
 
-            // Hijaz scale on D: D Eb F# G A Bb C# D
-            var D4=293.66,Eb4=311.13,Fs4=369.99,G4=392,A4=440,Bb4=466.16,Cs5=554.37,D5=587.33;
-            var D3=146.83,G3=196,A3=220,Bb3=233.08;
+            // G Major scale — bright, happy, celebratory
+            var G3=196,A3=220,B3=246.94,C4=261.63,D4=293.66,E4=329.63;
+            var G4=392,A4=440,B4=493.88,C5=523.25,D5=587.33,E5=659.25,G5=783.99;
 
-            var BPM = 72;
+            var BPM = 100; // Upbeat tempo
             var beat = 60 / BPM;
 
-            // Melody: 4 phrases, 32 beats — warm triangle wave
+            // Happy, bouncy celebration melody
             var melody = [
-                [D4,0,1],[Fs4,1,0.5],[G4,1.5,0.5],[A4,2,1.5],[G4,3.5,0.5],
-                [Fs4,4,1],[G4,5,0.5],[A4,5.5,0.5],[Bb4,6,1],[A4,7,0.5],[G4,7.5,0.5],
-                [A4,8,1],[Bb4,9,0.5],[Cs5,9.5,0.5],[D5,10,2],
-                [Cs5,12,0.5],[Bb4,12.5,0.5],[A4,13,1],[G4,14,1],[Fs4,15,1],
-                [G4,16,1],[A4,17,0.5],[Bb4,17.5,0.5],[A4,18,1.5],[G4,19.5,0.5],
-                [Fs4,20,1],[Eb4,21,0.5],[Fs4,21.5,0.5],[D4,22,2],
-                [D4,24,0.5],[Fs4,24.5,0.5],[A4,25,0.5],[D5,25.5,0.5],
-                [Cs5,26,1],[Bb4,27,1],[A4,28,1.5],[G4,29.5,0.5],
-                [Fs4,30,0.5],[G4,30.5,0.5],[D4,31,1.5]
+                // Phrase 1: Bright opening (joyful ascending)
+                [G4,0,0.5],[B4,0.5,0.5],[D5,1,0.75],[B4,1.75,0.25],
+                [G4,2,0.5],[A4,2.5,0.5],[B4,3,1],
+                [D5,4,0.5],[E5,4.5,0.5],[D5,5,0.5],[B4,5.5,0.5],
+                [C5,6,0.75],[A4,6.75,0.25],[G4,7,1],
+
+                // Phrase 2: Celebratory peak (uplifting!)
+                [B4,8,0.5],[D5,8.5,0.5],[G5,9,1],[E5,10,0.5],[D5,10.5,0.5],
+                [E5,11,0.5],[D5,11.5,0.5],[B4,12,1],
+                [C5,13,0.5],[D5,13.5,0.5],[E5,14,0.75],[D5,14.75,0.25],
+                [B4,15,0.5],[A4,15.5,0.5],
+
+                // Phrase 3: Dancing rhythm
+                [G4,16,0.5],[G4,16.5,0.25],[A4,16.75,0.25],[B4,17,0.5],[D5,17.5,0.5],
+                [C5,18,0.75],[B4,18.75,0.25],[A4,19,1],
+                [B4,20,0.5],[A4,20.5,0.5],[G4,21,0.5],[A4,21.5,0.5],
+                [B4,22,1.5],[G4,23.5,0.5],
+
+                // Phrase 4: Grand joyful finish
+                [D5,24,0.5],[E5,24.5,0.5],[G5,25,1],
+                [E5,26,0.5],[D5,26.5,0.5],[B4,27,1],
+                [C5,28,0.5],[B4,28.5,0.5],[A4,29,0.5],[B4,29.5,0.5],
+                [G4,30,2]
             ];
 
-            // Harmony pads: soft sine chords
+            // Bright major chord pads
             var pads = [
-                [[D3,Fs4,A4],0,4], [[G3,Bb4,D5],4,4],
-                [[D3,Fs4,A4],8,4], [[G3,Bb4,D5],12,2], [[A3,Cs5,Fs4],14,2],
-                [[G3,Bb3,D4],16,4], [[D3,A3,Fs4],20,4],
-                [[D3,Fs4,A4],24,4], [[G3,Bb4,D4],28,2], [[D3,A3,D4],30,2.5]
+                [[G3,B4,D5],0,4],    // G major
+                [[C4,E4,G4],4,4],    // C major
+                [[G3,B4,D5],8,4],    // G major
+                [[D4,G4,B4],12,2],   // G/D
+                [[C4,E4,A4],14,2],   // Am (brief tension)
+                [[C4,E4,G4],16,4],   // C major
+                [[D4,G4,B4],20,4],   // G/D
+                [[G3,B4,D5],24,4],   // G major
+                [[C4,E4,G4],28,2],   // C major
+                [[G3,B3,D4],30,2.5]  // G major resolve
             ];
 
-            // Bass: deep sine
+            // Bouncy bass line
             var bass = [
-                [D3,0,2],[D3,2,2],[G3,4,2],[G3,6,2],
-                [D3,8,2],[A3,10,2],[G3,12,2],[A3,14,2],
-                [G3,16,2],[G3,18,2],[D3,20,4],
-                [D3,24,2],[G3,26,2],[A3,28,2],[D3,30,2.5]
+                [G3,0,1],[G3,1,1],[G3,2,1],[G3,3,1],
+                [C4,4,1],[C4,5,1],[C4,6,1],[C4,7,1],
+                [G3,8,1],[G3,9,1],[D4,10,1],[D4,11,1],
+                [G3,12,1],[G3,13,1],[A3,14,1],[A3,15,1],
+                [C4,16,1],[C4,17,1],[C4,18,1],[C4,19,1],
+                [D4,20,1],[D4,21,1],[G3,22,1],[G3,23,1],
+                [G3,24,1],[G3,25,1],[G3,26,1],[G3,27,1],
+                [C4,28,1],[C4,29,1],[G3,30,2]
             ];
 
-            var totalBeats = 33;
+            // Light rhythmic taps (percussion feel)
+            var taps = [];
+            for (var i = 0; i < 32; i++) {
+                taps.push([6000, i, 0.08]); // hi-hat on every beat
+                if (i % 2 === 0) taps.push([150, i, 0.15]); // kick on 1 & 3
+                if (i % 4 === 2) taps.push([400, i + 0.5, 0.08]); // snare offbeat
+            }
+
+            var totalBeats = 32;
             var loopDur = totalBeats * beat;
 
             function playLoop() {
@@ -1015,73 +1049,71 @@
 
                 var now = ctx.currentTime + 0.1;
 
-                // Melody (triangle — warm, flute-like)
+                // Melody (triangle — bright, clear)
                 melody.forEach(function(n) {
-                    playNote(n[0], now + n[1]*beat, n[2]*beat, 'triangle', 0.11, dryMix);
-                    playNote(n[0]*2, now + n[1]*beat, n[2]*beat, 'sine', 0.015, dryMix);
+                    playNote(n[0], now + n[1]*beat, n[2]*beat, 'triangle', 0.12, dryMix);
+                    playNote(n[0]*2, now + n[1]*beat, n[2]*beat, 'sine', 0.02, dryMix);
                 });
 
-                // Pads (soft sine chords)
+                // Bright major pads
                 pads.forEach(function(chord) {
                     chord[0].forEach(function(freq) {
-                        playNote(freq, now + chord[1]*beat, chord[2]*beat, 'sine', 0.03, dryMix);
+                        playNote(freq, now + chord[1]*beat, chord[2]*beat, 'sine', 0.025, dryMix);
                     });
                 });
 
-                // Bass
+                // Bouncy bass
                 bass.forEach(function(n) {
-                    playNote(n[0], now + n[1]*beat, n[2]*beat, 'sine', 0.06, dryMix);
+                    playNote(n[0], now + n[1]*beat, n[2]*beat, 'sine', 0.055, dryMix);
                 });
 
-                // Loop with gap
+                // Light percussion taps
+                taps.forEach(function(n) {
+                    try {
+                        var ctx2 = ensureAudioCtx();
+                        var t2 = now + n[1]*beat;
+                        var o = ctx2.createOscillator(), g = ctx2.createGain();
+                        o.type = 'square';
+                        o.frequency.setValueAtTime(n[0], t2);
+                        o.frequency.exponentialRampToValueAtTime(Math.max(n[0]*0.3,20), t2+n[2]);
+                        g.gain.setValueAtTime(n[0] > 1000 ? 0.012 : 0.03, t2);
+                        g.gain.exponentialRampToValueAtTime(0.001, t2+n[2]);
+                        o.connect(g); g.connect(dryMix || ctx2.destination);
+                        o.start(t2); o.stop(t2+n[2]+0.01);
+                    } catch(e) {}
+                });
+
+                // Loop
                 setTimeout(function() {
                     if (!isMuted) playLoop(); else bgMusicPlaying = false;
-                }, (loopDur + 2) * 1000);
+                }, (loopDur + 1.5) * 1000);
             }
 
             playLoop();
         }
 
-        // Gentle sparkle / twinkle
+        // Bright sparkle sound
         function playSparkle() {
             if (isMuted) return;
             try {
                 var ctx = ensureAudioCtx();
                 if (ctx.state==='suspended') return;
                 var t = ctx.currentTime;
-                // Two-note sparkle (Hijaz interval)
-                var freqs = [739.99, 587.33];
-                freqs.forEach(function(f, i) {
+                // Quick ascending major third sparkle
+                [783.99, 987.77].forEach(function(f, i) {
                     var o = ctx.createOscillator(), g = ctx.createGain();
                     o.type = 'sine';
-                    o.frequency.setValueAtTime(f, t + i*0.06);
-                    g.gain.setValueAtTime(0.04, t + i*0.06);
-                    g.gain.exponentialRampToValueAtTime(0.001, t + 0.3 + i*0.06);
+                    o.frequency.setValueAtTime(f, t + i*0.05);
+                    g.gain.setValueAtTime(0.04, t + i*0.05);
+                    g.gain.exponentialRampToValueAtTime(0.001, t + 0.25 + i*0.05);
                     o.connect(g); g.connect(ctx.destination);
-                    o.start(t + i*0.06); o.stop(t + 0.35 + i*0.06);
+                    o.start(t + i*0.05); o.stop(t + 0.3 + i*0.05);
                 });
             } catch(e) {}
         }
 
-        // Dua button — gentle ascending 3-note chime
-        function playDuaSound() {
-            if (isMuted) return;
-            try {
-                var ctx = ensureAudioCtx();
-                if (ctx.state==='suspended') return;
-                var t = ctx.currentTime;
-                [293.66, 369.99, 440].forEach(function(f, i) {
-                    var o = ctx.createOscillator(), g = ctx.createGain();
-                    o.type = 'sine';
-                    o.frequency.setValueAtTime(f, t + i*0.1);
-                    g.gain.setValueAtTime(0.001, t + i*0.1);
-                    g.gain.linearRampToValueAtTime(0.1, t + i*0.1 + 0.02);
-                    g.gain.exponentialRampToValueAtTime(0.001, t + i*0.1 + 0.6);
-                    o.connect(g); g.connect(ctx.destination);
-                    o.start(t + i*0.1); o.stop(t + i*0.1 + 0.65);
-                });
-            } catch(e) {}
-        }
+        // Unused but kept for compatibility
+        function playDuaSound() {}
 
         window.toggleSound = function() {
             isMuted = !isMuted;
